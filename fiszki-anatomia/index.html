@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiszki z anatomii</title>
+<style>
+  :root { --bg:#f5f1ea; --card:#fffdf8; --ink:#2b2b2b; --accent:#b4533c; --muted:#7a7468; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1d1b19; --card:#2a2724; --ink:#eee8dd; --accent:#e0866c; --muted:#a39d90; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center;
+         justify-content:center; gap:20px; padding:16px; background:var(--bg); color:var(--ink);
+         font-family: system-ui, sans-serif; }
+  h1 { margin:0; font-size:1.3rem; }
+  .progress { color:var(--muted); font-size:.9rem; }
+  .scene { width:min(420px,100%); height:260px; perspective:1000px; cursor:pointer; }
+  .card { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .card.flipped { transform:rotateY(180deg); }
+  .face { position:absolute; inset:0; backface-visibility:hidden; display:flex; flex-direction:column;
+          align-items:center; justify-content:center; padding:24px; text-align:center;
+          background:var(--card); border:2px solid var(--accent); border-radius:16px;
+          box-shadow:0 6px 18px rgba(0,0,0,.12); font-size:1.25rem; }
+  .face small { margin-top:12px; color:var(--muted); font-size:.8rem; }
+  .back { transform:rotateY(180deg); }
+  .back b { color:var(--accent); font-size:1.5rem; }
+  .controls { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  button { padding:10px 18px; border:0; border-radius:10px; background:var(--accent); color:#fff;
+           font-size:1rem; cursor:pointer; }
+  button.alt { background:transparent; color:var(--accent); border:2px solid var(--accent); }
+  button:focus-visible { outline:3px solid var(--ink); outline-offset:2px; }
+</style>
+</head>
+<body>
+  <h1>Fiszki z anatomii</h1>
+  <div class="progress" id="progress"></div>
+  <div class="scene" id="scene" tabindex="0" role="button" aria-label="Odwróć fiszkę">
+    <div class="card" id="card">
+      <div class="face front"><span id="q"></span><small>kliknij, aby odwrócić</small></div>
+      <div class="face back"><b id="a"></b><small id="note"></small></div>
+    </div>
+  </div>
+  <div class="controls">
+    <button class="alt" id="prev">← Poprzednia</button>
+    <button class="alt" id="shuffle">Losuj</button>
+    <button id="next">Następna →</button>
+  </div>
+
+<script>
+const cards = [
+  { q: "Największa kość ludzkiego ciała?", a: "Kość udowa (femur)", n: "Długość ok. 1/4 wzrostu" },
+  { q: "Ile komór ma serce człowieka?", a: "4", n: "2 przedsionki i 2 komory" },
+  { q: "Który mięsień oddechowy oddziela klatkę piersiową od jamy brzusznej?", a: "Przepona (diaphragma)", n: "Główny mięsień wdechowy" },
+  { q: "Jak nazywa się najdłuższy nerw w ciele?", a: "Nerw kulszowy (n. ischiadicus)", n: "Biegnie od kręgosłupa lędźwiowo-krzyżowego do stopy" },
+  { q: "Która kość tworzy ramię (część kończyny górnej)?", a: "Kość ramienna (humerus)", n: "Łączy się z łopatką i kośćmi przedramienia" },
+  { q: "Gdzie znajduje się zastawka dwudzielna (mitralna)?", a: "Między lewym przedsionkiem a lewą komorą", n: "Zapobiega cofaniu się krwi" },
+  { q: "Który narząd produkuje żółć?", a: "Wątroba (hepar)", n: "Magazynowana w pęcherzyku żółciowym" },
+  { q: "Ile kręgów szyjnych ma człowiek?", a: "7", n: "C1 (atlas) i C2 (obrotnik) to pierwsze dwa" },
+  { q: "Który płat mózgu odpowiada głównie za wzrok?", a: "Płat potyliczny (lobus occipitalis)", n: "Ośrodek wzrokowy" },
+  { q: "Jak nazywa się chrząstka zamykająca wejście do krtani podczas połykania?", a: "Nagłośnia (epiglottis)", n: "Chroni drogi oddechowe przed aspiracją" }
+];
+
+let order = cards.map((_, i) => i);
+let pos = 0;
+const $ = id => document.getElementById(id);
+
+function render() {
+  const c = cards[order[pos]];
+  $("card").classList.remove("flipped");
+  $("q").textContent = c.q;
+  $("a").textContent = c.a;
+  $("note").textContent = c.n;
+  $("progress").textContent = `Fiszka ${pos + 1} / ${cards.length}`;
+}
+const flip = () => $("card").classList.toggle("flipped");
+const go = d => { pos = (pos + d + cards.length) % cards.length; render(); };
+
+$("scene").addEventListener("click", flip);
+$("next").addEventListener("click", () => go(1));
+$("prev").addEventListener("click", () => go(-1));
+$("shuffle").addEventListener("click", () => {
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  pos = 0; render();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+  else if (e.key === "ArrowRight") go(1);
+  else if (e.key === "ArrowLeft") go(-1);
+});
+render();
+</script>
+</body>
+</html>
